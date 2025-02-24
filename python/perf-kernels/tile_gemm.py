@@ -53,7 +53,6 @@ def matmul_kernel(
     BLOCK_SIZE_N: tl.constexpr,
     BLOCK_SIZE_K: tl.constexpr,
     EVEN_K: tl.constexpr,
-    GROUP_SIZE_M: tl.constexpr,
     APPLY_SCALE: tl.constexpr,
     ACTIVATION: tl.constexpr,
 ):
