@@ -6,9 +6,6 @@ import argparse
 import pytest
 import re
 
-from utils.benchmark_utils import get_available_models, get_model_configs
-
-
 @triton.autotune(
     configs=[
         triton.Config(
@@ -323,16 +320,6 @@ def parse_args():
         allow_abbrev=False,
     )
 
-    parser.add_argument('-model_configs', type=str, default="model_configs.json", help="Model config json file.")
-
-    available_models = get_available_models(model_families=["llama3"])  # Dynamically load model names
-    model_help = (
-        "Model name to benchmark. Select from: [" + ", ".join(available_models) +
-        "]. Use 'all' to benchmark all models. Not providing runs the default benchmark script with custom configs.")
-    parser.add_argument('-model', type=str, default=None, help=model_help)
-    parser.add_argument('-b', type=int, default=0, help="Batch size used together with model.")
-    parser.add_argument('-sq', type=int, default=0, help="Sequence length used together with model.")
-
     parser.add_argument("-v", action='store_true', default=False, help="Print out the best tuning config")
     parser.add_argument("-M", type=int, default=0)
     parser.add_argument("-N", type=int, default=0)
@@ -349,20 +336,6 @@ def main():
     global verbose
     args = parse_args()
     verbose = args.v
-
-    if args.model:
-        config_file = args.model_configs
-        configs = get_model_configs(config_path=config_file, model_families=["llama3"], model=args.model)
-        mnk_list = []
-        batch_size = args.b if args.b else 1
-
-        for model_name, config in configs.items():
-            seq_len = args.sq if args.sq else 4096
-            M, N, K = batch_size * seq_len, config["hidden_size"], config["intermediate_size"]
-            mnk_list.append((model_name, M, N, K))
-
-        benchmark.benchmarks.x_names = ['model', 'M', 'N', 'K']
-        benchmark.benchmarks.x_vals = mnk_list
 
     if args.M or args.N or args.K:
         assert args.model is None, "Providing both -model and -M/N/K is not compatible! -model already fixes -M/N/K."
